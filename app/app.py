@@ -14,13 +14,8 @@ class App(pyglet.window.Window):
         self.set_caption("CONWAY'S GAME OF LIFE")
 
         self.universe = UniverseView(
-            {
-                "left_x": 0,
-                "bottom_y": 0,
-                "right_x": self.width,
-                "top_y": self.height
-            },
-            configuration
+            viewport_size=(self.width, self.height),
+            configuration=configuration
         )
         self.ticking = False
 
@@ -45,3 +40,29 @@ class App(pyglet.window.Window):
             elif self.ticking:
                 pyglet.clock.unschedule(self.universe.tick)
             self.ticking = not self.ticking
+
+        if key == pyglet.window.key.W:
+            pyglet.clock.schedule_interval(
+                self.universe.scroll, 1/60.0, direction=(0, 1)
+            )
+        if key == pyglet.window.key.A:
+            pyglet.clock.schedule_interval(
+                self.universe.scroll, 1/60.0, direction=(-1, 0)
+            )
+        if key == pyglet.window.key.S:
+            pyglet.clock.schedule_interval(
+                self.universe.scroll, 1/60.0, direction=(0, -1)
+            )
+        if key == pyglet.window.key.D:
+            pyglet.clock.schedule_interval(
+                self.universe.scroll, 1/60.0, direction=(1, 0)
+            )
+
+    def on_key_release(self, key, modifiers):
+        if key in (
+                pyglet.window.key.W,
+                pyglet.window.key.A,
+                pyglet.window.key.S,
+                pyglet.window.key.D
+        ):
+            pyglet.clock.unschedule(self.universe.scroll)

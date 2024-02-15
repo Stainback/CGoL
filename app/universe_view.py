@@ -6,96 +6,87 @@ from engine import Universe
 
 
 class UniverseView:
+    grid_gap = 2
+
     def __init__(
             self,
-            visible_universe_abs: dict,
+            viewport_size: tuple[int, int],
+            viewport_origin: tuple[int, int] = (0, 0),
             configuration: set[tuple] = None,
     ):
         self._universe = Universe(configuration)
 
         self._cell_image = pyglet.resource.image("images/cell.png")
-
         self._universe_batch = pyglet.graphics.Batch()
 
-        self.visible_universe_abs = visible_universe_abs
-        self.visible_universe_grid = {
-            "left_x": self.abs_to_grid(self.visible_universe_abs["left_x"]),
-            "bottom_y": self.abs_to_grid(self.visible_universe_abs["bottom_y"]),
-            "right_x": self.abs_to_grid(self.visible_universe_abs["right_x"]),
-            "top_y": self.abs_to_grid(self.visible_universe_abs["top_y"])
-        }
-        self.grid_width = (self.visible_universe_grid["right_x"] -
-                           self.visible_universe_grid["left_x"])
-        self.grid_height = (self.visible_universe_grid["top_y"] -
-                            self.visible_universe_grid["bottom_y"])
-
-        self.cell_counter = pyglet.text.Label(
-            x=self.visible_universe_abs["right_x"],
-            y=self.visible_universe_abs["bottom_y"],
-            anchor_x="right",
-            anchor_y="bottom",
-            color=(0, 255, 0, 255)
+        self._grid_cell = (
+            (self._cell_image.width + self.grid_gap),
+            (self._cell_image.height + self.grid_gap)
         )
+        self._grid_origin = (self.abs_to_grid(viewport_origin[0]),
+                             self.abs_to_grid(viewport_origin[1]))
+        self._grid_width = (self.abs_to_grid(viewport_size[0]) -
+                            self._grid_origin[0])
+        self._grid_height = (self.abs_to_grid(viewport_size[1]) -
+                             self._grid_origin[1])
 
         self._cells_sprites = [
             pyglet.sprite.Sprite(
-                x=i,
-                y=j,
+                x=i * self._grid_cell[0],
+                y=j * self._grid_cell[1],
                 img=self._cell_image,
                 batch=self._universe_batch,
             )
-            for j in range(
-                self.visible_universe_abs["bottom_y"],
-                self.visible_universe_abs["top_y"],
-                self._cell_image.height + 2
-            )
-            for i in range(
-                self.visible_universe_abs["left_x"],
-                self.visible_universe_abs["right_x"],
-                self._cell_image.width + 2
-            )
+            for j in range(self._grid_height)
+            for i in range(self._grid_width)
         ]
-        self.update_cells_sprites()
+        self.update()
 
-    def update_cells_sprites(self):
+    def update(self):
         for sprite in self._cells_sprites:
             sprite.visible = False
 
         for cell in self._universe.alive:
             if (
-                    self.visible_universe_grid["left_x"] <= cell[0] <
-                    self.visible_universe_grid["right_x"] and
-                    self.visible_universe_grid["bottom_y"] <= cell[1] <
-                    self.visible_universe_grid["top_y"]
+                    self._grid_origin[0] <= cell[0] <
+                    self._grid_origin[0] + self._grid_width and
+                    self._grid_origin[1] <= cell[1] <
+                    self._grid_origin[1] + self._grid_height
             ):
                 self._cells_sprites[
-                    cell[0] + cell[1] * self.grid_height
+                    (cell[1] - self._grid_origin[1]) * self._grid_width +
+                    (cell[0] - self._grid_origin[0])
                     ].visible = True
 
     def draw(self):
         self._universe_batch.draw()
-        self.cell_counter.draw()
 
     def set_alive(self, x: int, y: int):
+        target = self.abs_to_grid((x, y))
         self._universe.set_alive(
-            self.abs_to_grid((x, y))
+            (target[0] + self._grid_origin[0], target[1] + self._grid_origin[1])
         )
-        self.update_cells_sprites()
+        self.update()
 
     def set_dead(self, x: int, y: int):
+        target = self.abs_to_grid((x, y))
         self._universe.set_dead(
-            self.abs_to_grid((x, y))
+            (target[0] + self._grid_origin[0], target[1] + self._grid_origin[1])
         )
-        self.update_cells_sprites()
+        self.update()
+
+    def scroll(self, dt, direction: tuple[int, int]):
+        self._grid_origin = (self._grid_origin[0] + direction[0],
+                             self._grid_origin[1] + direction[1])
+        self.update()
 
     def tick(self, dt=None):
         self._universe.tick()
-        self.update_cells_sprites()
-        self.cell_counter.text = f"C:{len(self._universe.alive)}"
+        self.update()
 
     def abs_to_grid(self, coord: tuple | int):
         if isinstance(coord, tuple):
-            return (coord[0] // (self._cell_image.width + 2),
-                    coord[1] // (self._cell_image.height + 2))
+            return (coord[0] // self._grid_cell[0],
+                    coord[1] // self._grid_cell[1])
         if isinstance(coord, int):
-            return coord // (self._cell_image.width + 2)
+            return coord // self._grid_cell[0]

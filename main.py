@@ -3,13 +3,20 @@ import pyglet
 from app import App
 
 
+WINDOW_WIDTH, WINDOW_HEIGHT = 900, 900
+
+
+def benchmark():
+    return {
+        (i, j) for i in range(50) for j in range(50)
+    }
+
+
 if __name__ == "__main__":
     pyglet.resource.path = ["resources"]
     pyglet.resource.reindex()
 
-    config = {
-        (5, 15), (6, 15), (7, 15), (7, 16), (6, 17)
-    }
+    config = benchmark()
 
-    app = App(1020, 1020, configuration=config)
+    app = App(WINDOW_WIDTH, WINDOW_HEIGHT, configuration=config)
     pyglet.app.run()

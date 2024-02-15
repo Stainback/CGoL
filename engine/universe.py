@@ -25,6 +25,9 @@ class Universe:
     def set_alive(self, position: tuple[int, int]):
         self._alive.add(position)
 
+    def set_dead(self, position: tuple[int, int]):
+        self._alive.discard(position)
+
     def tick(self):
         scope = self.get_scope()
         generation = {cell for cell in self._alive}
@@ -44,10 +47,3 @@ class Universe:
                     generation.add(cell)
 
         self._alive = generation
-
-
-if __name__ == "__main__":
-    universe = Universe(
-        {(10, 11), (10, 12), (11, 10), (12, 13), (13, 11), (13, 12)}
-    )
-    universe.tick()

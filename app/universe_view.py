@@ -10,12 +10,11 @@ class UniverseView:
 
     def __init__(
             self,
+            universe: Universe,
             viewport_size: tuple[int, int],
             viewport_origin: tuple[int, int] = (0, 0),
-            configuration: set[tuple] = None,
     ):
-        self._universe = Universe(configuration)
-
+        universe.push_handlers(self)
         self._cell_image = pyglet.resource.image("images/cell.png")
         self._universe_batch = pyglet.graphics.Batch()
 
@@ -40,13 +39,12 @@ class UniverseView:
             for j in range(self._grid_height)
             for i in range(self._grid_width)
         ]
-        self.update()
 
-    def update(self):
+    def on_universe_update(self, cells: list[tuple]):
         for sprite in self._cells_sprites:
             sprite.visible = False
 
-        for cell in self._universe.alive:
+        for cell in cells:
             if (
                     self._grid_origin[0] <= cell[0] <
                     self._grid_origin[0] + self._grid_width and
@@ -61,28 +59,9 @@ class UniverseView:
     def draw(self):
         self._universe_batch.draw()
 
-    def set_alive(self, x: int, y: int):
-        target = self.abs_to_grid((x, y))
-        self._universe.set_alive(
-            (target[0] + self._grid_origin[0], target[1] + self._grid_origin[1])
-        )
-        self.update()
-
-    def set_dead(self, x: int, y: int):
-        target = self.abs_to_grid((x, y))
-        self._universe.set_dead(
-            (target[0] + self._grid_origin[0], target[1] + self._grid_origin[1])
-        )
-        self.update()
-
     def scroll(self, dt, direction: tuple[int, int]):
         self._grid_origin = (self._grid_origin[0] + direction[0],
                              self._grid_origin[1] + direction[1])
-        self.update()
-
-    def tick(self, dt=None):
-        self._universe.tick()
-        self.update()
 
     def abs_to_grid(self, coord: tuple | int):
         if isinstance(coord, tuple):

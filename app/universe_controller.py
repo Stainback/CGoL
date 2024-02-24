@@ -1,65 +1,54 @@
+from __future__ import annotations
+
 import pyglet
+from pyglet.event import EventDispatcher
 
-from .universe_view import UniverseView
+from .universe_view import View
 from engine.universe import Universe
+from .save_manager import SaveManager
 
 
-class UniverseController:
-    def __init__(self, universe: Universe, view: UniverseView):
+class UniverseController(EventDispatcher):
+    def __init__(
+            self,
+            universe: Universe,
+            viewport_size: tuple[int, int]
+    ):
         self.universe = universe
-        self.view = view
-        self.ticking = False
+        self.view = View(
+            model=self.universe,
+            controller=self,
+            viewport_size=viewport_size,
+            caption="CONWAY'S GAME OF LIFE"
+        )
+        self.manager = SaveManager(
+            model=self.universe,
+            controller=self
+        )
+        self._ticking = False
 
-    def on_mouse_press(self, x, y, key, modifiers):
-        if key == pyglet.window.mouse.LEFT:
-            # self.universe.set_alive(
-            #     (
-            #         x // self.view._grid_cell[0],
-            #         y // self.view._grid_cell[1]
-            #     )
-            # )
-            print((
-                    x // self.view._grid_cell[0],
-                    y // self.view._grid_cell[1]
-                ))
-        if key == pyglet.window.mouse.RIGHT:
-            self.universe.set_dead(
-                (
-                    x // self.view._grid_cell[0],
-                    y // self.view._grid_cell[1]
-                )
-            )
+    def loop_model(self):
+        if not self._ticking:
+            pyglet.clock.schedule_interval(self.universe.tick, 0.1)
+        elif self._ticking:
+            pyglet.clock.unschedule(self.universe.tick)
+        self._ticking = not self._ticking
 
-    def on_key_press(self, key, modifiers):
-        if key == pyglet.window.key.SPACE:
-            if not self.ticking:
-                pyglet.clock.schedule_interval(self.universe.tick, 0.1)
-            elif self.ticking:
-                pyglet.clock.unschedule(self.universe.tick)
-            self.ticking = not self.ticking
+    def save_model(self):
+        self.dispatch_event("on_save")
 
-        if key == pyglet.window.key.W:
-            pyglet.clock.schedule_interval(
-                self.view.scroll, 1/60.0, direction=(0, 1)
-            )
-        if key == pyglet.window.key.A:
-            pyglet.clock.schedule_interval(
-                self.view.scroll, 1/60.0, direction=(-1, 0)
-            )
-        if key == pyglet.window.key.S:
-            pyglet.clock.schedule_interval(
-                self.view.scroll, 1/60.0, direction=(0, -1)
-            )
-        if key == pyglet.window.key.D:
-            pyglet.clock.schedule_interval(
-                self.view.scroll, 1/60.0, direction=(1, 0)
-            )
+    def set_cells(self, x: float, y: float, value: bool = True):
+        self.universe.set_cells(
+            self.abs_to_grid((x, y)),
+            value=value
+        )
 
-    def on_key_release(self, key, modifiers):
-        if key in (
-                pyglet.window.key.W,
-                pyglet.window.key.A,
-                pyglet.window.key.S,
-                pyglet.window.key.D
-        ):
-            pyglet.clock.unschedule(self.view.scroll)
+    def abs_to_grid(self, coord: tuple | int):
+        if isinstance(coord, tuple):
+            return (coord[0] // self.view.cell_size[0],
+                    coord[1] // self.view.cell_size[1])
+        if isinstance(coord, int):
+            return coord // self.view.cell_size[0]
+
+
+UniverseController.register_event_type("on_save")

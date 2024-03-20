@@ -2,17 +2,13 @@ from __future__ import annotations
 
 import pyglet
 
-from engine.models.universe_model import Universe
-from engine.managers.universe_manager import UniverseController
-from app.views.universe_view import View
 from app.app_component import AppComponent
 
 
-class View(pyglet.window.Window):
+class AppView(pyglet.window.Window):
     def __init__(
             self,
             viewport_size: tuple[int, int],
-            configuration: set[tuple] = None,
             caption: str = "caption"
     ):
         super().__init__(*viewport_size)

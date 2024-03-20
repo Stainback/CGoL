@@ -1,8 +1,9 @@
 import pyglet
 
 from app_config import WINDOW_WIDTH, WINDOW_HEIGHT
-from app.views.app_view import View
-from engine.managers.app_manager import Manager
+from engine import Universe
+from engine.managers.app_manager import AppManager
+from engine.managers.universe_manager import UniverseManager
 
 
 def benchmark():
@@ -22,12 +23,16 @@ if __name__ == "__main__":
         (WINDOW_WIDTH // 18 - 1, 0)
     }
 
-    app_view = View(
+    app_manager = AppManager(
         viewport_size=(WINDOW_WIDTH, WINDOW_HEIGHT),
-        configuration=config,
         caption="CONWAY'S GAME OF LIFE"
     )
-    app_manager = Manager(app_view)
-    app_view.push_handlers(app_manager)
+
+    universe = Universe(config)
+    universe_manager = UniverseManager(
+        app_manager, universe, app_manager.view
+    )
+
+    save_manager = None
 
     pyglet.app.run()

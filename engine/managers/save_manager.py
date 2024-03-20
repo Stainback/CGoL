@@ -11,7 +11,7 @@ class SaveManager:
 
     def __init__(self, app):
         self.app = app
-        self.model = app.model
+        self.model = app._model
         self.model_view = app.model_view
         self.save_list = [
             os.path.splitext(path)[0] for path in os.listdir(path=self._path)

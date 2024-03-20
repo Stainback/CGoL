@@ -5,7 +5,6 @@ import pyglet
 from app_config import IMG_CELL
 from app.app_component import AppComponent
 from engine.models.universe_model import Universe
-from engine.managers.universe_manager import UniverseManager
 
 
 class UniverseView(AppComponent):
@@ -14,12 +13,10 @@ class UniverseView(AppComponent):
     def __init__(
             self,
             model: Universe,
-            controller: UniverseManager,
             viewport_width: int, viewport_height: int,
             viewport_origin: tuple[int, int] = (0, 0),
     ):
         self.model = model
-        self.controller = controller
 
         self._view_batch = pyglet.graphics.Batch()
         self._cell_image = IMG_CELL

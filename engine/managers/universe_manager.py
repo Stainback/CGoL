@@ -1,31 +1,38 @@
 import pyglet
 
-from app.views.app_view import AppView
 from app.views.universe_view import UniverseView
 from engine import Universe
-from engine.command import Invoker, TickCommand, SetCellCommand
+from engine.command import TickCommand, SetCellCommand
+from engine.managers.app_manager import AppManager
 
 
 class UniverseManager:
     def __init__(
             self,
-            invoker: Invoker,
+            app_manager: AppManager,
             model: Universe,
-            app_window: AppView
     ):
-        self._invoker = invoker
+        self._invoker = app_manager
         self._model = model
         self._view = UniverseView(
             self._model,
-            viewport_width=app_window.width,
-            viewport_height=app_window.height
+            viewport_width=app_manager.view.width,
+            viewport_height=app_manager.view.height
         )
 
         self._model.push_handlers(self._view)
-        app_window.push_handlers(self)
-        app_window.register_component(self._view)
+        app_manager.view.push_handlers(self)
+        app_manager.view.register_component(self._view)
 
         self._ticking = False
+
+    @property
+    def model(self):
+        return self._model
+
+    @property
+    def view(self):
+        return self._view
 
     def on_mouse_press(self, x, y, button, modifiers):
         value = None

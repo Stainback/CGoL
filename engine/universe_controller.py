@@ -132,6 +132,9 @@ class UniverseController(Invoker):
             *args, **kwargs
     ):
         command_event = self.key_map.get(event)
+        # In pyglet, when no modifier is pressed, the variable has the value of 16
+        # Thus, the modifier is corrected, so I can use 0 in key_map, which is more
+        # understandable for me.
         modifier = modifier - 16
         if command_event:
             command_info = command_event.get(key, {}).get(modifier)

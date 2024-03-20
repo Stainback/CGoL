@@ -1,18 +1,13 @@
 import pyglet
 
-from app_config import (
-    MESSAGE_ON_OVERWRITE, MESSAGE_ON_SAVE_SUCCESS, MESSAGE_ON_LOAD_SUCCESS,
-    MESSAGE_ON_SAVE_FAILURE, MESSAGE_ON_LOAD_FAILURE,
-    MESSAGE_ON_SAVE_FILENAME_VALIDATION_ERROR
-)
-
 from app.app_component import AppComponent
 from app.gui import TextFormWidget, OptionsListWidget, Text
 
 
 class SaveManagerGUI(AppComponent):
-    def __init__(self, app, options_list: list[str]):
-        self._app = app
+    def __init__(self, controller):
+        self._controller = controller
+        self._app = self._controller.app
         self._batch = pyglet.graphics.Batch()
 
         self._templates = {

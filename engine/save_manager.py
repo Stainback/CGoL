@@ -1,12 +1,7 @@
 import os
 import json
 
-from app_config import (PATH_SAVES,
-                        MESSAGE_ON_OVERWRITE,
-                        MESSAGE_ON_SAVE_SUCCESS,
-                        MESSAGE_ON_LOAD_SUCCESS,
-                        MESSAGE_ON_LOAD_FAILURE,
-                        MESSAGE_ON_SAVE_FILENAME_VALIDATION_ERROR)
+from app_config import PATH_SAVES, MESSAGES
 from app.app_block import AppBlock
 from app.save_manager_gui import SaveManagerGUI
 
@@ -21,20 +16,21 @@ class SaveManager:
         self.save_list = [
             os.path.splitext(path)[0] for path in os.listdir(path=self._path)
         ]
-        self.view = SaveManagerGUI(self.app, self.save_list)
-        self.data = {
-            "configuration": list(self.model.alive),
-            "origin": self.model_view.origin
-        }
+        self.view = SaveManagerGUI(self)
         self.scenario = None
         self.filename = None
 
     def save(self, filename: str):
+        data = {
+            "configuration": list(self.model.alive),
+            "origin": self.model_view.origin
+        }
+
         with open(
             os.path.join(self._path, filename + ".json"),
             "w"
         ) as save_file:
-            json.dump(self.data, save_file, indent=4)
+            json.dump(data, save_file, indent=4)
             print(f"{self} - Universe has been saved as {filename}.")
 
     def load(self, filename: str):
@@ -42,11 +38,11 @@ class SaveManager:
                 os.path.join(self._path, filename + ".json"),
                 "r"
         ) as save_file:
-            self.data = json.load(save_file)
+            data = json.load(save_file)
             self.model.alive = {
-                tuple(item) for item in self.data["configuration"]
+                tuple(item) for item in data["configuration"]
             }
-            self.model_view.origin = tuple(self.data["origin"])
+            self.model_view.origin = tuple(data["origin"])
             print(f"{self} - {filename} has been loaded.")
 
     def is_valid(self, filename):

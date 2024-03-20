@@ -52,7 +52,7 @@ class Universe(EventDispatcher):
         else:
             self.alive = self.alive.difference(configuration)
 
-    def tick(self, dt) -> None:
+    def tick(self) -> None:
         """
             Perform a simulation step.
         """

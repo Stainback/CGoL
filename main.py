@@ -1,10 +1,8 @@
 import pyglet
 
-import app_config
-from app import App
-
-
-WINDOW_WIDTH, WINDOW_HEIGHT = 900, 594
+from app_config import WINDOW_WIDTH, WINDOW_HEIGHT
+from app.views.app_view import View
+from engine.managers.app_manager import Manager
 
 
 def benchmark():
@@ -17,11 +15,19 @@ def benchmark():
 
 if __name__ == "__main__":
     # config = benchmark()
-    config = {(0, 0), (49, 32), (0, 32), (49, 0)}
+    config = {
+        (0, 0),
+        (WINDOW_WIDTH // 18 - 1, WINDOW_HEIGHT // 18 - 1),
+        (0, WINDOW_HEIGHT // 18 - 1),
+        (WINDOW_WIDTH // 18 - 1, 0)
+    }
 
-    app = App(
+    app_view = View(
         viewport_size=(WINDOW_WIDTH, WINDOW_HEIGHT),
         configuration=config,
         caption="CONWAY'S GAME OF LIFE"
     )
+    app_manager = Manager(app_view)
+    app_view.push_handlers(app_manager)
+
     pyglet.app.run()

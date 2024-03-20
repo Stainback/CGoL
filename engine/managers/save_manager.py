@@ -1,9 +1,9 @@
 import os
 import json
 
-from app_config import PATH_SAVES, MESSAGES
+from app_config import PATH_SAVES
 from app.app_block import AppBlock
-from app.save_manager_gui import SaveManagerGUI
+from app.views.save_view import SaveManagerGUI
 
 
 class SaveManager:

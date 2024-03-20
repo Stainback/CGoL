@@ -4,7 +4,7 @@ from app.app_component import AppComponent
 from app.gui import TextFormWidget, OptionsListWidget, Text
 
 
-class SaveManagerGUI(AppComponent):
+class SaveManagerView(AppComponent):
     def __init__(self, controller):
         self._controller = controller
         self._app = self._controller.app

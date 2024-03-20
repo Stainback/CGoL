@@ -4,17 +4,22 @@ import pyglet
 
 from app_config import IMG_CELL
 from app.app_component import AppComponent
+from engine.models.universe_model import Universe
+from engine.managers.universe_manager import UniverseManager
 
 
-class View(AppComponent):
+class UniverseView(AppComponent):
     grid_gap = 2
 
     def __init__(
             self,
-            app,
+            model: Universe,
+            controller: UniverseManager,
+            viewport_width: int, viewport_height: int,
             viewport_origin: tuple[int, int] = (0, 0),
     ):
-        self.model = app.model
+        self.model = model
+        self.controller = controller
 
         self._view_batch = pyglet.graphics.Batch()
         self._cell_image = IMG_CELL
@@ -30,8 +35,8 @@ class View(AppComponent):
                 img=self._cell_image,
                 batch=self._view_batch,
             )
-            for j in range(0, app.height, self.cell_size[1])
-            for i in range(0, app.width, self.cell_size[0])
+            for j in range(0, viewport_height, self.cell_size[1])
+            for i in range(0, viewport_width, self.cell_size[0])
         }
         self.origin = viewport_origin
 

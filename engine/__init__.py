@@ -1,1 +1,1 @@
-from .universe import Universe
+from engine.models.universe_model import Universe

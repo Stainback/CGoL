@@ -5,6 +5,9 @@ import pyglet
 pyglet.resource.path = ["resources"]
 pyglet.resource.reindex()
 
+# CONSTANTS
+WINDOW_WIDTH, WINDOW_HEIGHT = 900, 594
+
 # PATHS
 PATH_SAVES = "saves"
 PATH_FONTS = os.path.join("resources", "fonts")

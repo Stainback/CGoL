@@ -77,6 +77,8 @@ class UniverseManager:
             pyglet.clock.schedule_interval(
                 self._scroll, 1/60, direction_x=1
             )
+        elif key == pyglet.window.key.I and modifiers & pyglet.window.key.MOD_CTRL:
+            print(f"Origin - {self._view.origin}, universe size - {len(self._model.alive)}.")
 
     def on_key_release(self, key, modifiers):
         if key in (

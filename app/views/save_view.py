@@ -35,6 +35,7 @@ class SaveManagerView(AppComponent):
     def disable_gui_element(self, element_name: str):
         element = self._gui.get(element_name)
         if element:
-            self._manager._app._view.remove_widget(element)
+            element.hide()
+            self._manager._app._view.frame.remove_widget(element)
         else:
             raise ValueError(f"No {element_name} GUI template exists.")

@@ -167,7 +167,7 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
                 )
             ]
             print(item)
-            # self.dispatch_event("on_text_commit", item)
+            self.dispatch_event("on_text_commit", item)
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         pass
@@ -180,4 +180,4 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
 
 
 # TextFormWidget.register_event_type("on_text_commit")
-# OptionsListWidget.register_event_type("on_text_commit")
+OptionsListWidget.register_event_type("on_text_commit")

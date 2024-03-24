@@ -12,7 +12,7 @@ class SaveManagerView(AppComponent):
         self._gui = {
             "savefile_list": OptionsListWidget(
                 batch=self._batch,
-                x=32, y=32,
+                x=32, y=self._manager._app._view.height,
                 options_list=self._manager._save_list,
             ),
         }

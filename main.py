@@ -3,6 +3,7 @@ import pyglet
 from app_config import WINDOW_WIDTH, WINDOW_HEIGHT
 from engine import Universe
 from engine.managers.app_manager import AppManager
+from engine.managers.save_manager import SaveManager
 from engine.managers.universe_manager import UniverseManager
 
 
@@ -30,9 +31,11 @@ if __name__ == "__main__":
 
     universe = Universe(config)
     universe_manager = UniverseManager(
-        app_manager, universe, app_manager.view
+        app_manager, universe
     )
 
-    save_manager = None
+    save_manager = SaveManager(
+        app_manager, universe_manager
+    )
 
     pyglet.app.run()

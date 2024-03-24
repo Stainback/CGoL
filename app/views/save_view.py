@@ -1,110 +1,40 @@
 import pyglet
 
 from app.app_component import AppComponent
-from app.gui import TextFormWidget, OptionsListWidget, Text
+from app.gui import TextFormWidget, OptionsListWidget
 
 
 class SaveManagerView(AppComponent):
-    def __init__(self, controller):
-        self._controller = controller
-        self._app = self._controller.app
+    def __init__(self, manager):
+        self._manager = manager
         self._batch = pyglet.graphics.Batch()
 
-        self._templates = {
-            "text_form": {
-                "type": TextFormWidget,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 40,
-                    "text": "Enter name for new savefile"
-                }
-            },
-            "button_overwrite_true": {
-                "type": pyglet.gui.PushButton,
-                "kwargs": {
-
-                }
-            },
-            "button_overwrite_false": {
-                "type": pyglet.gui.PushButton,
-                "kwargs": {}
-            },
-            "info_label_overwrite": {
-                "type": Text,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 80,
-                    "text": MESSAGE_ON_OVERWRITE
-                }
-            },
-            "info_label_filename_validation_error": {
-                "type": Text,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 80,
-                    "text": MESSAGE_ON_SAVE_FILENAME_VALIDATION_ERROR
-                }
-            },
-            "info_label_save_success": {
-                "type": Text,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 80,
-                    "text": MESSAGE_ON_SAVE_SUCCESS
-                }
-            },
-            "info_label_load_success": {
-                "type": Text,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 80,
-                    "text": MESSAGE_ON_LOAD_SUCCESS
-                }
-            },
-            "info_label_save_failure": {
-                "type": Text,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 80,
-                    "text": MESSAGE_ON_SAVE_FAILURE
-                }
-            },
-            "info_label_load_failure": {
-                "type": Text,
-                "kwargs": {
-                    "x": 20,
-                    "y": self._app.height - 80,
-                    "text": MESSAGE_ON_LOAD_FAILURE
-                }
-            },
-            "file_list": {
-                "type": OptionsListWidget,
-                "kwargs": {
-                    "x": 20,
-                    "y": 20,
-                    "options_list": options_list
-                }
-            }
+        self._gui = {
+            "savefile_list": OptionsListWidget(
+                batch=self._batch,
+                x=0, y=16,
+                options_list=self._manager._save_list,
+            ),
         }
-        self._gui = {}
+
+        for element in self._gui.values():
+            element.hide()
 
     def draw(self):
         self._batch.draw()
 
-    def create_gui_element(self, element_name: str):
-        template = self._templates.get(element_name)
-        if template:
-            element = template["type"](
-                batch=self._batch,
-                **template["kwargs"]
-            )
-            if issubclass(element.__class__, pyglet.gui.WidgetBase):
-                self._app.frame.add_widget(element)
-            self._gui[element_name] = element
+    def enable_gui_element(self, element_name: str, *args, **kwargs):
+        element = self._gui.get(element_name)
+        if element:
+            element.show()
+            self._manager._app._view.frame.add_widget(element)
             return element
         else:
             raise ValueError(f"No {element_name} GUI template exists.")
 
-    def delete_gui_element(self, element_name: str):
-        element = self._gui.pop(element_name)
-        self._app.frame.remove_widget(element)
+    def disable_gui_element(self, element_name: str):
+        element = self._gui.get(element_name)
+        if element:
+            self._manager._app._view.remove_widget(element)
+        else:
+            raise ValueError(f"No {element_name} GUI template exists.")

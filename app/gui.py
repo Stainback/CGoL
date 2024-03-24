@@ -1,48 +1,126 @@
+from __future__ import annotations
+
 import pyglet
 
 from app_config import FONT_DEFAULT, COLOR_DEFAULT, COLOR_BACKGROUND
 
 
-class TextFormWidget(pyglet.gui.TextEntry):
+class WidgetTextComponent:
     def __init__(
             self,
-            batch,
-            x: int,
-            y: int,
-            color: tuple[int] = COLOR_BACKGROUND,
+            batch: pyglet.graphics.Batch,
+            widget_group: pyglet.graphics.Group,
+            x: int, y: int,
             text: str = "",
-            text_color: tuple[int] = COLOR_DEFAULT,
             font_name: str = FONT_DEFAULT,
             font_size: int = 16,
-            group=None
+            text_color: tuple[int, int, int, int] = COLOR_DEFAULT
     ):
-        super().__init__(
-            text=text,
-            x=x,
-            y=y,
-            width=max(200, len(text) * font_size),
-            color=color,
-            text_color=text_color,
-            batch=batch,
-            group=group
+        self._batch = batch
+        self._group = pyglet.graphics.Group(order=1, parent=widget_group)
+
+        self._doc = pyglet.text.document.FormattedDocument()
+        self.font_name = font_name
+        self.font_size = font_size
+        self.text_color = text_color
+        self.text = text
+
+        self._layout = pyglet.text.layout.TextLayout(
+            document=self._doc, width=self._width, height=self._height,
+            x=x, y=y,
+            multiline=True, batch=batch,
+            group=self._group
         )
+
+        self._outline = pyglet.shapes.Rectangle(
+            self.x, self.y,
+            self.width,
+            self.height,
+            (255, 255, 0),
+            batch, self._group
+        )
+        self._outline.opacity = 255
+
+    @property
+    def x(self) -> int:
+        return self._layout.x
+
+    @property
+    def y(self) -> int:
+        return self._layout.y
+
+    @property
+    def width(self) -> int | float:
+        return self._layout.content_width
+
+    @property
+    def height(self) -> int | float:
+        return self._layout.content_height
+
+    @property
+    def text(self) -> str:
+        return self._doc.text
+
+    @text.setter
+    def text(self, text: str):
+        self._doc.text = text
+
+        lines = text.splitlines()
+        self._width = self.font_size / 1.25 * len(max(lines, key=len))              # pt to px
+        self._height = 1.33 * self.font_size * len(lines)                      # pt to px
 
         self._doc.set_style(
             start=0,
-            end=0,
+            end=len(self._doc.text),
             attributes={
-                "font_name": font_name,
-                "font_size": font_size
+                "font_name": self.font_name,
+                "font_size": self.font_size,
+                "color": self.text_color,
             }
         )
 
-    def on_commit(self, text):
-        super().on_commit(text)
-        self.dispatch_event("on_text_commit", text)
+
+class WidgetBackgroundComponent:
+    _padding = 2
+
+    def __init__(
+            self,
+            batch: pyglet.graphics.Batch,
+            widget_group: pyglet.graphics.Group,
+            content,
+            color: tuple[int] = COLOR_BACKGROUND
+    ):
+        self._group = pyglet.graphics.Group(order=0, parent=widget_group)
+        self._outline = pyglet.shapes.Rectangle(
+            content.x - self._padding, content.y - self._padding,
+            content.width + (2 * self._padding),
+            content.height + (2 * self._padding), color[:3],
+            batch, self._group
+        )
+        self._outline.opacity = color[3]
+
+    @property
+    def x(self):
+        return self._outline.x
+
+    @property
+    def y(self):
+        return self._outline.y
+
+    @property
+    def width(self):
+        return self._outline.width
+
+    @property
+    def height(self):
+        return self._outline.height
+
+
+class TextFormWidget:
+    pass
 
 
 class OptionsListWidget(pyglet.gui.WidgetBase):
-    _item_gap = 2
     _page_capacity = 5
 
     def __init__(
@@ -50,113 +128,69 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
             batch,
             x: int,
             y: int,
-            color: tuple[int] = COLOR_BACKGROUND,
             options_list: list[str] = None,
-            text_color: tuple[int] = COLOR_DEFAULT,
-            font_name: str = FONT_DEFAULT,
-            font_size: int = 16,
-            group=None
     ):
-        self._doc = pyglet.text.document.FormattedDocument(
-            "\n".join(options_list)
-        )
-        self._doc.set_style(
-            start=0,
-            end=len(self._doc.text),
-            attributes={
-                "font_name": font_name,
-                "font_size": font_size,
-                "color": text_color,
-            }
-        )
-        font = self._doc.get_font(0)
-        height = ((font.ascent - font.descent + self._item_gap) *
-                  min(len(options_list), self._page_capacity))
-        width = max(
-            200, max(map(lambda item: len(item), options_list)) * font_size
+        self._group = pyglet.graphics.Group()
+        self._options_list = options_list
+
+        self._options = WidgetTextComponent(
+            batch=batch,
+            widget_group=self._group,
+            x=x, y=y,
+            text="\n".join([option.upper() for option in self._options_list]),
+            text_color=(255, 0, 0, 255)
         )
 
-        bg_group = pyglet.graphics.Group(order=0, parent=group)
-        fg_group = pyglet.graphics.Group(order=1, parent=group)
-
-        self._outline = pyglet.shapes.Rectangle(
-            x - self._item_gap, y - self._item_gap,
-            width + (2 * self._item_gap),
-            height + (2 * self._item_gap), color[:3],
-            batch, bg_group
+        self._background = WidgetBackgroundComponent(
+            batch=batch,
+            widget_group=self._group,
+            content=self._options
         )
-        self._outline.opacity = color[3]
 
-        self._layout = pyglet.text.layout.TextLayout(
-            self._doc, width, height,
-            multiline=True, batch=batch,
-            group=fg_group
+        self._info = WidgetTextComponent(
+            batch=batch,
+            widget_group=self._group,
+            x=x, y=self._background.y + self._background.height + 20,
+            text="INFO LABEL",
+            text_color=(0, 255, 0, 255)
         )
-        self._layout.x = x
-        self._layout.y = y
 
-        super().__init__(x, y, width, height)
+        super().__init__(
+            x=x, y=y,
+            width=max(self._info.width, self._background.width),
+            height=self._background.height + self._info.height + 20
+        )
+        self._item_height = self._options.height / len(self._options_list)
 
-        self.options_list = options_list
-        self._item_height = self._height / len(self.options_list)
-        self._right_x = self._x + self._width
-        self._upper_y = self._y + self._height
+        print(f"text: {self._options.x, self._options.y}")
+        print(f"bckg: {self._background.x, self._background.y}")
 
     def _check_hit(self, x, y):
-        return (self._x < x < self._right_x
-                and self._y < y < self._upper_y)
+        return (
+            self._options.x < x < self._options.x + self._options.width and
+            self._options.y < y < self._options.y + self._options.height
+        )
 
     def on_mouse_press(self, x, y, buttons, modifiers):
         if self._check_hit(x, y):
-            item = self.options_list[
-                int((self._upper_y - y) // self._item_height)
+            item = self._options_list[
+                int(
+                    (self._options.y + self._options.height - y) //
+                    (self._options.height / len(self._options_list))
+                )
             ]
-            self.dispatch_event("on_text_commit", item)
+            print(item)
+            # self.dispatch_event("on_text_commit", item)
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         pass
 
+    def show(self):
+        self._group.visible = True
 
-class Text(pyglet.text.Label):
-    _padding = 2
-
-    def __init__(
-            self,
-            batch,
-            x: int, y: int,
-            color: tuple[int] = COLOR_BACKGROUND,
-            text: str = "TEXT PLACEHOLDER",
-            text_color: tuple[int] = COLOR_DEFAULT,
-            font_name=FONT_DEFAULT,
-            font_size: int = 16,
-            group=None
-    ):
-        super().__init__(
-            text=text,
-            font_name=font_name,
-            font_size=font_size,
-            color=text_color,
-            x=x, y=y,
-            batch=batch,
-            group=group
-        )
-
-        font = self.document.get_font(0)
-        height = font.ascent - font.descent
-        width = max(
-            200, len(text) * font_size
-        )
-
-        bg_group = pyglet.graphics.Group(order=0, parent=group)
-
-        self._outline = pyglet.shapes.Rectangle(
-            x - self._padding, y - self._padding,
-            width + (2 * self._padding),
-            height + (2 * self._padding), color[:3],
-            batch, bg_group
-        )
-        self._outline.opacity = color[3]
+    def hide(self):
+        self._group.visible = False
 
 
-TextFormWidget.register_event_type("on_text_commit")
-OptionsListWidget.register_event_type("on_text_commit")
+# TextFormWidget.register_event_type("on_text_commit")
+# OptionsListWidget.register_event_type("on_text_commit")

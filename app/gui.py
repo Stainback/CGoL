@@ -26,20 +26,11 @@ class WidgetTextComponent:
         self.text = text
 
         self._layout = pyglet.text.layout.TextLayout(
-            document=self._doc, width=self._width, height=self._height,
+            document=self._doc, width=self._width, height=None,
             x=x, y=y,
             multiline=True, batch=batch,
             group=self._group
         )
-
-        self._outline = pyglet.shapes.Rectangle(
-            self.x, self.y,
-            self.width,
-            self.height,
-            (255, 255, 0),
-            batch, self._group
-        )
-        self._outline.opacity = 255
 
     @property
     def x(self) -> int:
@@ -66,8 +57,7 @@ class WidgetTextComponent:
         self._doc.text = text
 
         lines = text.splitlines()
-        self._width = self.font_size / 1.25 * len(max(lines, key=len))              # pt to px
-        self._height = 1.33 * self.font_size * len(lines)                      # pt to px
+        self._width = self.font_size / 1.25 * len(max(lines, key=len))                 # pt to px
 
         self._doc.set_style(
             start=0,
@@ -138,7 +128,7 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
             widget_group=self._group,
             x=x, y=y,
             text="\n".join([option.upper() for option in self._options_list]),
-            text_color=(255, 0, 0, 255)
+            text_color=(0, 0, 0, 255)
         )
 
         self._background = WidgetBackgroundComponent(
@@ -151,7 +141,7 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
             batch=batch,
             widget_group=self._group,
             x=x, y=self._background.y + self._background.height + 20,
-            text="INFO LABEL",
+            text="Pick a savefile to continue loading...",
             text_color=(0, 255, 0, 255)
         )
 
@@ -161,9 +151,6 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
             height=self._background.height + self._info.height + 20
         )
         self._item_height = self._options.height / len(self._options_list)
-
-        print(f"text: {self._options.x, self._options.y}")
-        print(f"bckg: {self._background.x, self._background.y}")
 
     def _check_hit(self, x, y):
         return (

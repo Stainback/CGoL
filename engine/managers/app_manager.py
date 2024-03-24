@@ -15,6 +15,7 @@ class AppManager(Invoker):
         self._view = AppView(
             viewport_size=viewport_size, caption=caption
         )
+        self.enabled = True
 
         self._view.push_handlers(self)
 

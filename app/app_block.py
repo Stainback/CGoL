@@ -7,14 +7,8 @@ class AppBlock:
         self.app.enabled = False
         print("App is blocked.")
 
-        if self.components:
-            self.app.register_component(self.components)
-
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.components:
-            self.app.withdraw_component(self.components)
-
         self.app.enabled = True
         print("App is unblocked.")

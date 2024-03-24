@@ -61,29 +61,33 @@ class UniverseManager:
             )
         elif key == pyglet.window.key.ENTER:
             self._loop_model()
-        elif key == pyglet.window.key.W:
+        elif key in (pyglet.window.key.W, pyglet.window.key.UP):
             pyglet.clock.schedule_interval(
                 self._scroll, 1/60, direction_y=1
             )
-        elif key == pyglet.window.key.A:
+        elif key in (pyglet.window.key.A, pyglet.window.key.LEFT):
             pyglet.clock.schedule_interval(
                 self._scroll, 1/60, direction_x=-1
             )
-        elif key == pyglet.window.key.S:
+        elif key in (pyglet.window.key.S, pyglet.window.key.DOWN):
             pyglet.clock.schedule_interval(
                 self._scroll, 1/60, direction_y=-1
             )
-        elif key == pyglet.window.key.D:
+        elif key in (pyglet.window.key.D, pyglet.window.key.RIGHT):
             pyglet.clock.schedule_interval(
                 self._scroll, 1/60, direction_x=1
             )
 
     def on_key_release(self, key, modifiers):
         if key in (
-                pyglet.window.key.W,
-                pyglet.window.key.A,
-                pyglet.window.key.S,
-                pyglet.window.key.D
+            pyglet.window.key.W,
+            pyglet.window.key.A,
+            pyglet.window.key.S,
+            pyglet.window.key.D,
+            pyglet.window.key.UP,
+            pyglet.window.key.DOWN,
+            pyglet.window.key.LEFT,
+            pyglet.window.key.RIGHT
         ):
             pyglet.clock.unschedule(self._scroll)
 

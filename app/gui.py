@@ -128,3 +128,15 @@ class WidgetBackgroundComponent:
     @property
     def height(self):
         return self._outline.height
+
+
+class WidgetCaretComponent:
+    pass
+
+
+class WidgetButtonComponent:
+    pass
+
+
+class WidgetSliderComponent:
+    pass

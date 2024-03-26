@@ -86,14 +86,14 @@ class SaveManager:
 
     def save_scenario(self):
         with AppBlock(self._app, self._view) as block:
-            text_form = self._view.enable_gui_element("text_form")
+            text_form = self._view.enable_gui_element("savefile_form")
             text_form.push_handlers(self)
 
             while True:
                 yield
                 if not self._is_exists(self._filename):
                     self._save(self._filename)
-                    self._view.disable_gui_element("text_form")
+                    self._view.disable_gui_element("savefile_form")
                     break
 
     def load_scenario(self):

@@ -4,11 +4,79 @@ from app.app_component import AppComponent
 import app.gui as gui
 
 
-class TextFormWidget:
-    pass
+class SaveWidget(pyglet.gui.WidgetBase):
+    def __init__(
+            self,
+            batch: pyglet.graphics.Batch,
+            x: int, y: int,
+    ):
+        self._group = pyglet.graphics.Group(order=0)
+
+        self._info = gui.WidgetTextComponent(
+            batch=batch,
+            widget_group=self._group,
+            x=x, y=y,
+            anchor_y="top",
+            text_color=(0, 255, 0, 255)
+        )
+
+        self._form = gui.WidgetTextFormComponent(
+            batch=batch,
+            widget_group=self._group,
+            x=x, y=y,
+            anchor_y="top"
+        )
+
+        self._background = gui.WidgetBackgroundComponent(
+            batch=batch,
+            widget_group=self._group,
+            content=self._form
+        )
+
+        super().__init__(
+            x=0, y=0,
+            width=0,
+            height=0
+        )
+
+    def _check_hit(self, x, y):
+        return (
+            self._form.x < x < self._form.x + self._form.width and
+            self._form.y - self._form.height < y < self._form.y
+        )
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        print(x,y)
+        if self._check_hit(x, y):
+            print(1)
+            self._form.enable(x, y, button, modifiers)
+        else:
+            self._form.disable()
+
+    def on_text(self, text_input: str):
+        filename = self._form.process_text_input(text_input)
+        if filename:
+            self.dispatch_event("on_text_commit", filename)
+            self._form.disable()
+            self._form.hide()
+
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        self._form.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
+
+    def on_text_motion(self, motion):
+        self._form.on_text_motion(motion)
+
+    def on_text_motion_select(self, motion):
+        self._form.on_text_motion_select(motion)
+
+    def show(self):
+        self._group.visible = True
+
+    def hide(self):
+        self._group.visible = False
 
 
-class OptionsListWidget(pyglet.gui.WidgetBase):
+class LoadWidget(pyglet.gui.WidgetBase):
     _page_capacity = 5
 
     def __init__(
@@ -18,7 +86,7 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
             y: int,
             options_list: list[str] = None,
     ):
-        self._group = pyglet.graphics.Group()
+        self._group = pyglet.graphics.Group(order=1)
         self._options_list = options_list
 
         self._info = gui.WidgetTextComponent(
@@ -67,14 +135,14 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
 
     def on_mouse_press(self, x, y, buttons, modifiers):
         if self._check_hit(x, y):
-            item = self._options_list[
+            filename = self._options_list[
                 int(
                     (self._options.y - y) //
                     (self._options.height / len(self._options_list))
                 )
             ]
-            print(item)
-            self.dispatch_event("on_text_commit", item)
+            print(filename)
+            self.dispatch_event("on_text_commit", filename)
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         pass
@@ -86,8 +154,8 @@ class OptionsListWidget(pyglet.gui.WidgetBase):
         self._group.visible = False
 
 
-# TextFormWidget.register_event_type("on_text_commit")
-OptionsListWidget.register_event_type("on_text_commit")
+SaveWidget.register_event_type("on_text_commit")
+LoadWidget.register_event_type("on_text_commit")
 
 
 class SaveManagerView(AppComponent):
@@ -96,7 +164,11 @@ class SaveManagerView(AppComponent):
         self._batch = pyglet.graphics.Batch()
 
         self._gui = {
-            "savefile_list": OptionsListWidget(
+            "savefile_form": SaveWidget(
+                batch=self._batch,
+                x=32, y=self._manager._app._view.height - 32,
+            ),
+            "savefile_list": LoadWidget(
                 batch=self._batch,
                 x=32, y=self._manager._app._view.height,
                 options_list=self._manager._save_list,
